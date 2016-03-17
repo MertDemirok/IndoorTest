@@ -62,7 +62,6 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
-
     //Wifi listener
     private void initializeWiFiListener(){
 
