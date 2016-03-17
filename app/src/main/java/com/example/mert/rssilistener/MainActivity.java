@@ -31,6 +31,7 @@ public class MainActivity extends ActionBarActivity {
     public List<ScanResult> wifi_list;
     public String loc_Name;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
