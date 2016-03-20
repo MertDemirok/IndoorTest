@@ -1,7 +1,3 @@
-/*
-	author nihatemreyuksel
-*/
-
 package main
 
 import (
@@ -11,10 +7,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/Emre/indoor_service/indoor_test/go_services/queries"
 	"github.com/Emre/indoor_service/indoor_test/go_services/models"
+	"github.com/Emre/indoor_service/indoor_test/go_services/queries"
 	"github.com/gorilla/mux"
-	"github.com/c3mb0/beter"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
@@ -55,7 +50,7 @@ func reqErr(err error, w http.ResponseWriter) {
 
 func prepareDb() {
 	var err error
-	db = sqlx.MustConnect("postgres", "user=postgres password=19071993 dbname=indoor_location sslmode=disable")
+	db = sqlx.MustConnect("postgres", "user=postgres password=Deftones1 dbname=indoor_location sslmode=disable")
 	stmt, err = queries.RegisterStatements(db)
 	check(b.E(err))
 }
@@ -69,7 +64,9 @@ func main() {
 
 	router.HandleFunc("/check", areWeLive).Methods("GET")
 	router.HandleFunc("/getLocationData", getLocationData).Methods("GET")
-	router.HandleFunc("/insertLocationData", insertLocationData).Methods("POST")
+	router.HandleFunc("/InsertApData", InsertApData).Methods("POST")
+	router.HandleFunc("/InsertLocData", InsertLocData).Methods("POST")
+	router.HandleFunc("/InsertLocDef", InsertLocDef).Methods("POST")
 
 	http.ListenAndServe(":2323", router)
 }
@@ -79,7 +76,7 @@ func areWeLive(w http.ResponseWriter, r *http.Request) {
 }
 
 func getLocationData(w http.ResponseWriter, r *http.Request) {
-	
+
 	location := []models.Location{}
 	err := stmt.GetLocationData.Select(&location)
 
@@ -91,12 +88,29 @@ func getLocationData(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonData)
 }
 
-func insertLocationData(w http.ResponseWriter, r *http.Request){
+func InsertApData(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	var location models.Location
-	err := decoder.Decode(&location)
+	var apdata models.ApData
+	err := decoder.Decode(&apdata)
 	check(b.E(err))
+	_, err2 := stmt.InsertApData.Exec(apdata.Mac, apdata.RssiMax, apdata.RssiMin, apdata.LocDefId)
+	check(b.E(err2))
+}
 
-	_, err2 := stmt.InsertLocationData.Exec(location.MacID, location.SSID, location.RSSIMin, location.RSSIMax, location.Id)
+func InsertLocData(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var locdata models.LocData
+	err := decoder.Decode(&locdata)
+	check(b.E(err))
+	_, err2 := stmt.InsertLocData.exec(locdata.DeviceID, locdata.LogDefId)
+	check(b.E(err2))
+}
+
+func InsertLocDef(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var locdef models.LocDef
+	err := decoder.Decode(&locdef)
+	check(b.E(err))
+	_, err2 := stmt.InsertLocDef.exec(locdef.Name)
 	check(b.E(err2))
 }
